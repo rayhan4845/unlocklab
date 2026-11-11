@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="মোবাইল আনলক, IMEI, Apple ID, FRP লক ও সফটওয়্যার সার্ভিস">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}body{margin:0}</style>
+<title>UnlockLab BD</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: service-bench site — sticky top bar, hash-routed pages, IMEI/ticket mono details as the subject's own vernacular */
+:root{
+  --bg:#f3f5f9; --surface:#ffffff; --sunk:#e9edf4; --ink:#0d1726; --muted:#5a6679; --line:#d9e0ea;
+  --accent:#e2541b; --accent-ink:#ffffff; --blue:#1557d6; --ok:#13875a; --warn-bg:#fff4e8; --warn-line:#f2c79c; --warn-ink:#7a3a0e;
+  --display:"Sora","Hind Siliguri",system-ui,sans-serif;
+  --body:"Hind Siliguri","Sora",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0a1019; --surface:#111a27; --sunk:#0d1520; --ink:#e7ecf4; --muted:#95a2b6; --line:#213044;
+  --accent:#ff7a3d; --accent-ink:#1a0b03; --blue:#5b9dff; --ok:#3fcf8e; --warn-bg:#2a1a0e; --warn-line:#5c3818; --warn-ink:#ffc896; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0a1019; --surface:#111a27; --sunk:#0d1520; --ink:#e7ecf4; --muted:#95a2b6; --line:#213044;
+  --accent:#ff7a3d; --accent-ink:#1a0b03; --blue:#5b9dff; --ok:#3fcf8e; --warn-bg:#2a1a0e; --warn-line:#5c3818; --warn-ink:#ffc896; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.65}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+a{color:inherit}
+h1,h2,h3{font-family:var(--display);line-height:1.2;text-wrap:balance;margin:0}
+p{margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:var(--mono)}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-family:var(--display)}
+.muted{color:var(--muted)}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:16px;height:64px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.01em}
+.logo b{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--ink);color:var(--bg)}
+.logo span em{font-style:normal;color:var(--accent)}
+nav.main{display:flex;gap:4px;margin-left:auto}
+nav.main a{text-decoration:none;padding:8px 12px;border-radius:8px;font-weight:500;color:var(--muted)}
+nav.main a:hover{color:var(--ink);background:var(--sunk)}
+nav.main a.on{color:var(--ink);background:var(--sunk)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;text-decoration:none;font:600 15px/1 var(--body);padding:12px 18px;border-radius:10px;background:var(--accent);color:var(--accent-ink);white-space:nowrap}
+.btn:hover{filter:brightness(1.07)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn.ghost:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.btn.sm{padding:9px 14px;font-size:14px}
+:focus-visible{outline:2.5px solid var(--blue);outline-offset:2px}
+.menu-btn{display:none;margin-left:auto;background:none;border:0;color:var(--ink);padding:8px;cursor:pointer}
+@media (max-width:900px){
+  nav.main{display:none;position:absolute;top:64px;left:0;right:0;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--line);padding:8px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px))}
+  nav.main.open{display:flex}
+  .menu-btn{display:block}
+  .bar .btn.cta{display:none}
+}
+
+main{padding-block:0 64px;min-height:60vh}
+section{padding-block:56px}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+.sec-head h2{font-size:clamp(26px,3.4vw,36px);margin-top:6px}
+
+/* hero */
+.hero{padding-block:56px 40px}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(34px,5.4vw,60px);font-weight:800;letter-spacing:-.02em}
+.hero h1 mark{background:none;color:var(--accent)}
+.hero p.lead{font-size:19px;color:var(--muted);margin-top:18px;max-width:34em}
+.hero .acts{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.checks{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:28px;font-weight:500}
+.checks span{display:flex;gap:8px;align-items:center}
+.checks svg{color:var(--ok)}
+@media (max-width:860px){.hero-grid{grid-template-columns:1fr}.hero-phone{order:-1}}
+
+/* phone dialer visual */
+.hero-phone{display:flex;justify-content:center}
+.dev{width:min(300px,100%);aspect-ratio:9/17;max-width:100%;border-radius:40px;background:#0d1726;padding:12px;box-shadow:0 30px 60px -30px rgba(13,23,38,.55),inset 0 0 0 2px #2a3a52}
+.dev .scr{height:100%;border-radius:30px;background:linear-gradient(170deg,#18263b,#0e1828);color:#e7ecf4;display:flex;flex-direction:column;padding:22px 20px;gap:14px;overflow:hidden}
+.dev .notch{width:90px;height:22px;border-radius:12px;background:#05090f;margin:-8px auto 4px}
+.dev .dial{font-family:var(--mono);font-size:30px;text-align:center;letter-spacing:.06em;color:#fff}
+.dev .card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px}
+.dev .card small{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#93a0b4;font-family:var(--display)}
+.dev .card .mono{font-size:clamp(14px,4.2vw,17px);letter-spacing:.04em;margin-top:2px;word-break:break-all}
+.dev .stat{display:flex;align-items:center;gap:8px;font-size:14px}
+.dev .dot{width:9px;height:9px;border-radius:50%;background:#3fcf8e;box-shadow:0 0 0 4px rgba(63,207,142,.18)}
+.dev .unl{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:10px;background:#ff7a3d;color:#1a0b03;border-radius:14px;padding:13px;font-weight:700;font-family:var(--display)}
+@media (prefers-reduced-motion:no-preference){.dev .dot{animation:pulse 1.8s ease-in-out infinite}@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(63,207,142,0)}}}
+
+/* trust strip */
+.strip{background:var(--surface);border-block:1px solid var(--line)}
+.strip .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding-block:26px}
+.strip div.t{display:flex;gap:12px;align-items:flex-start}
+.strip .t svg{color:var(--accent);margin-top:3px}
+.strip h3{font-size:16px;font-family:var(--body);font-weight:700}
+.strip p{font-size:14px;color:var(--muted)}
+@media (max-width:860px){.strip .wrap{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.strip .wrap{grid-template-columns:1fr}}
+
+/* service cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px}
+.card-s{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;text-decoration:none;transition:transform .18s,border-color .18s}
+.card-s:hover{transform:translateY(-3px);border-color:var(--muted)}
+.card-s .art{aspect-ratio:16/10;max-width:100%;display:block}
+.card-s .art svg{display:block;width:100%;height:100%}
+.card-s .b{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+.card-s .cat{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:var(--display)}
+.card-s h3{font-size:18px;font-family:var(--body);font-weight:700}
+.card-s p{font-size:14.5px;color:var(--muted)}
+.card-s .f{margin-top:auto;padding-top:12px;display:flex;justify-content:space-between;align-items:center;border-top:1px dashed var(--line);font-size:14px}
+.card-s .price{font-weight:700;color:var(--ink)}
+.card-s .go{display:flex;align-items:center;gap:4px;color:var(--accent);font-weight:600}
+
+/* categories */
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cat-tile{display:flex;gap:16px;align-items:center;padding:20px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line);text-decoration:none}
+.cat-tile:hover{border-color:var(--muted)}
+.cat-tile .ic{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;color:#fff;flex:none}
+.cat-tile .ic svg{width:24px;height:24px}
+.cat-tile h3{font-size:17px;font-family:var(--body);font-weight:700}
+.cat-tile p{font-size:14px;color:var(--muted)}
+@media (max-width:860px){.cats{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.cats{grid-template-columns:1fr}}
+
+/* process */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;counter-reset:s}
+.step{padding:22px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line);position:relative}
+.step .n{font-family:var(--mono);font-weight:700;font-size:13px;color:var(--accent);letter-spacing:.06em}
+.step h3{font-size:18px;margin:8px 0 6px;font-family:var(--body);font-weight:700}
+.step p{font-size:14.5px;color:var(--muted)}
+@media (max-width:900px){.steps{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.steps{grid-template-columns:1fr}}
+
+.brands{display:flex;flex-wrap:wrap;gap:10px}
+.brands span{padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-family:var(--display);font-weight:600;font-size:14px}
+
+.cta-band{background:var(--ink);color:var(--bg);border-radius:20px;padding:40px;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+.cta-band h2{font-size:clamp(24px,3vw,32px)}
+.cta-band p{opacity:.75;margin-top:6px}
+.cta-band .btn.ghost{color:var(--bg);box-shadow:inset 0 0 0 1.5px currentColor}
+
+/* page head */
+.phead{padding-block:44px 8px}
+.phead h1{font-size:clamp(30px,4.4vw,46px);font-weight:800;margin-top:8px}
+.phead p{color:var(--muted);margin-top:10px;max-width:40em;font-size:17px}
+.crumb{font-size:14px;color:var(--muted)}
+.crumb a{text-decoration:none;color:var(--muted)}
+.crumb a:hover{color:var(--ink)}
+
+/* filters */
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-block:24px}
+.search{display:flex;align-items:center;gap:8px;flex:1 1 260px;max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:0 12px;color:var(--muted)}
+.search input{border:0;background:transparent;font:inherit;color:var(--ink);padding:11px 0;width:100%;outline:none}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:500 14px var(--body);padding:8px 14px;border-radius:999px;cursor:pointer}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.empty{padding:40px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:var(--r)}
+
+/* detail */
+.detail{display:grid;grid-template-columns:1.4fr 1fr;gap:32px;align-items:start;margin-top:24px}
+.detail > *{min-width:0}
+.d-art{border-radius:18px;overflow:hidden;aspect-ratio:16/9;max-width:100%}
+.d-art svg{display:block;width:100%;height:100%}
+.d-body{margin-top:28px;display:flex;flex-direction:column;gap:28px}
+.d-body h2{font-size:22px}
+.d-body p{color:var(--muted);max-width:62ch}
+ul.ticks{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:10px}
+ul.ticks li{display:flex;gap:10px;align-items:flex-start}
+ul.ticks li svg{color:var(--ok);margin-top:3px}
+ul.need li svg{color:var(--blue)}
+.notice{display:flex;gap:12px;padding:16px;border-radius:12px;background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);font-size:15px}
+.notice svg{margin-top:2px}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 84px);background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:16px}
+.side .pr{font-family:var(--display);font-size:34px;font-weight:800}
+.side .pr small{font-size:15px;font-weight:500;color:var(--muted);font-family:var(--body)}
+.kv{display:grid;gap:10px;font-size:15px}
+.kv div{display:flex;justify-content:space-between;gap:12px;padding-bottom:10px;border-bottom:1px dashed var(--line)}
+.kv div span:first-child{color:var(--muted)}
+.kv div span:last-child{font-weight:600;text-align:right}
+.ticket{font-family:var(--mono);font-size:12.5px;color:var(--muted);text-align:center}
+@media (max-width:900px){.detail{grid-template-columns:1fr}.side{position:static}}
+
+/* pricing table */
+.tbl-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;min-width:620px}
+th,td{text-align:left;padding:14px 18px;border-bottom:1px solid var(--line)}
+th{font-family:var(--display);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--sunk)}
+td.p{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+td a{text-decoration:none;font-weight:600}
+td a:hover{color:var(--accent)}
+tr.grp td{background:var(--sunk);font-family:var(--display);font-weight:700;font-size:15px}
+tr:last-child td{border-bottom:0}
+
+/* faq */
+.faq{display:grid;gap:12px;max-width:820px}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 20px}
+summary{cursor:pointer;padding:18px 0;font-weight:600;font-size:17px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--mono);color:var(--accent);font-size:20px;line-height:1}
+details[open] summary::after{content:"–"}
+details p{padding-bottom:18px;color:var(--muted)}
+
+/* about / contact */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start}
+.two > *{min-width:0}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px}
+.prose p{color:var(--muted);margin-top:14px;max-width:62ch}
+.values{display:grid;gap:16px;margin-top:8px}
+.values div{display:flex;gap:14px}
+.values svg{color:var(--accent);margin-top:4px}
+.values h3{font-size:17px;font-family:var(--body);font-weight:700}
+.values p{color:var(--muted);font-size:15px}
+form{display:grid;gap:16px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+label{display:grid;gap:6px;font-weight:600;font-size:14.5px}
+input,select,textarea{font:inherit;font-weight:400;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
+textarea{min-height:90px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 22%,transparent)}
+.hint{font-size:13px;color:var(--muted);font-weight:400}
+.out{display:grid;gap:12px;padding:18px;border-radius:12px;background:var(--sunk);border:1px solid var(--line)}
+.out pre{margin:0;white-space:pre-wrap;font-family:var(--mono);font-size:13.5px;word-break:break-word}
+.out .acts{display:flex;gap:10px;flex-wrap:wrap}
+.info{display:grid;gap:18px}
+.info .it{display:flex;gap:14px;align-items:flex-start}
+.info .it svg{color:var(--accent);margin-top:4px}
+.info .it small{display:block;color:var(--muted);font-size:13.5px}
+.info .it b{font-size:17px;user-select:all}
+.hours{display:grid;gap:6px;margin-top:6px;font-size:15px}
+.hours div{display:flex;justify-content:space-between}
+
+footer{border-top:1px solid var(--line);background:var(--surface)}
+footer .wrap{padding-block:40px;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:28px}
+footer h4{font-family:var(--display);font-size:14px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 12px;color:var(--muted)}
+footer ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+footer a{text-decoration:none;color:var(--ink)}
+footer a:hover{color:var(--accent)}
+footer .legal{grid-column:1/-1;border-top:1px solid var(--line);padding-top:20px;font-size:13.5px;color:var(--muted)}
+@media (max-width:860px){footer .wrap{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){footer .wrap{grid-template-columns:1fr}}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:10px;font-weight:600;z-index:50}
+.wa-float{position:fixed;right:calc(20px + env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:50%;background:#1faa53;color:#fff;display:grid;place-items:center;box-shadow:0 10px 24px -8px rgba(0,0,0,.45);z-index:30}
+.wa-float svg{width:26px;height:26px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="#home"><b><svg class="i" viewBox="0 0 24 24"><path d="M6 11h12v9H6z M8 11V8a4 4 0 0 1 7.5-2"/></svg></b><span id="brand">Unlock<em>Lab</em> BD</span></a>
+    <nav class="main" id="nav">
+      <a href="#home" data-r="home">হোম</a>
+      <a href="#services" data-r="services">সার্ভিস</a>
+      <a href="#pricing" data-r="pricing">মূল্য তালিকা</a>
+      <a href="#process" data-r="process">কিভাবে কাজ করি</a>
+      <a href="#faq" data-r="faq">প্রশ্নোত্তর</a>
+      <a href="#about" data-r="about">আমাদের সম্পর্কে</a>
+      <a href="#contact" data-r="contact">যোগাযোগ</a>
+    </nav>
+    <a class="btn sm cta" href="#contact">অর্ডার করুন</a>
+    <button class="menu-btn" id="menuBtn" aria-label="মেনু খুলুন" aria-expanded="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16 M4 12h16 M4 17h16"/></svg></button>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <a class="logo" href="#home"><b><svg class="i" viewBox="0 0 24 24"><path d="M6 11h12v9H6z M8 11V8a4 4 0 0 1 7.5-2"/></svg></b><span class="brandName">UnlockLab BD</span></a>
+      <p class="muted" style="margin-top:12px;max-width:30em">মোবাইল আনলক, IMEI, অ্যাকাউন্ট লক ও সফটওয়্যার সমস্যার বিশ্বস্ত সমাধান। শুধুমাত্র প্রকৃত মালিকের ডিভাইসে কাজ করি।</p>
+    </div>
+    <div><h4>সার্ভিস</h4><ul id="fServices"></ul></div>
+    <div><h4>পেজ</h4><ul>
+      <li><a href="#pricing">মূল্য তালিকা</a></li><li><a href="#process">কিভাবে কাজ করি</a></li><li><a href="#faq">প্রশ্নোত্তর</a></li><li><a href="#about">আমাদের সম্পর্কে</a></li><li><a href="#contact">যোগাযোগ</a></li></ul></div>
+    <div><h4>যোগাযোগ</h4><ul>
+      <li class="mono cfgPhone"></li><li class="cfgAddr muted"></li><li class="cfgHours muted"></li></ul></div>
+    <div class="legal">© ২০২৬ <span class="brandName">UnlockLab BD</span> · চোরাই বা হারানো ডিভাইস আমরা গ্রহণ করি না। সন্দেহজনক ডিভাইস সম্পর্কে আইনশৃঙ্খলা বাহিনীকে জানানো হয়।</div>
+  </div>
+</footer>
+
+<a class="wa-float" id="waFloat" href="#contact" target="_blank" rel="noopener" aria-label="WhatsApp এ মেসেজ দিন"><svg class="i" viewBox="0 0 24 24"><path d="M4 20l1.5-4A8 8 0 1 1 8 19z M9 10c0 3 2 5 5 5"/></svg></a>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ====== আপনার তথ্য এখানে বদলান ====== */
+const CONFIG = {
+  brand: "UnlockLab BD",
+  phone: "+880 1700-000000",
+  whatsapp: "8801700000000",
+  address: "দোকান নং ১২, মোবাইল মার্কেট, ঢাকা",
+  hours: "শনি–বৃহস্পতি, সকাল ১০টা – রাত ৯টা",
+  email: "support@unlocklab.example"
+};
+
+const I = {
+  lock:"M6 11h12v9H6z M8 11V8a4 4 0 0 1 8 0v3",
+  unlock:"M6 11h12v9H6z M8 11V8a4 4 0 0 1 7.5-2",
+  cloud:"M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 11 3.5 3.5 0 0 0 7 18z",
+  key:"M9 15a4 4 0 1 1 0-8 4 4 0 0 1 0 8z M12 12l8 8 M17 17l2-2",
+  search:"M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z M16 16l5 5",
+  signal:"M4 20v-3 M9 20v-7 M14 20V9 M19 20V5",
+  chip:"M7 7h10v10H7z M10 3v4 M14 3v4 M10 17v4 M14 17v4 M3 10h4 M3 14h4 M17 10h4 M17 14h4",
+  refresh:"M20 12a8 8 0 1 1-2.3-5.7 M20 4v5h-5",
+  shield:"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z M9 12l2 2 4-4",
+  data:"M12 8c4.4 0 8-1.3 8-3s-3.6-3-8-3-8 1.3-8 3 3.6 3 8 3z M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5 M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3",
+  battery:"M3 8h15v8H3z M21 11v2 M6 11v2 M9 11v2",
+  screen:"M7 2h10v20H7z M11 18h2",
+  plug:"M9 2v5 M15 2v5 M6 7h12v4a6 6 0 0 1-12 0z M12 17v5",
+  globe:"M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M3 12h18 M12 3c3 3.5 3 14.5 0 18 M12 3c-3 3.5-3 14.5 0 18",
+  bug:"M8 9h8v7a4 4 0 0 1-8 0z M9 6l1.5 2 M15 6l-1.5 2 M4 12h4 M16 12h4 M5 18l3-2 M19 18l-3-2",
+  user:"M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21a8 8 0 0 1 16 0",
+  flash:"M13 2L4 14h7l-1 8 9-12h-7z",
+  download:"M12 3v12 M7 10l5 5 5-5 M4 21h16",
+  check:"M5 12l5 5 9-10",
+  grid:"M6 6h.01 M12 6h.01 M18 6h.01 M6 12h.01 M12 12h.01 M18 12h.01 M6 18h.01 M12 18h.01 M18 18h.01 M6 6l6 6 6-6",
+  doc:"M6 3h9l4 4v14H6z M14 3v5h5 M9 13h7 M9 17h5",
+  arrow:"M5 12h14 M13 6l6 6-6 6",
+  clock:"M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 7v5l3 2",
+  tag:"M3 12V3h9l9 9-9 9z M7.5 7.5h.01",
+  info:"M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 11v6 M12 7.5h.01",
+  copy:"M9 9h11v11H9z M5 15H4V4h11v1",
+  wa:"M4 20l1.5-4A8 8 0 1 1 8 19z M9 10c0 3 2 5 5 5",
+  pin:"M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z M12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
+  phone:"M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z",
+  layers:"M12 3l9 5-9 5-9-5z M3 13l9 5 9-5"
+};
+const ic = (k,cls="i") => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${I[k]}"/></svg>`;
+
+const CATS = {
+  imei:    {bn:"IMEI ও নেটওয়ার্ক", hue:"#e2541b", hue2:"#9c2f08", icon:"signal", d:"IMEI চেক, রেজিস্ট্রেশন, নেটওয়ার্ক আনলক"},
+  apple:   {bn:"Apple / iPhone", hue:"#2d6bf0", hue2:"#173c94", icon:"cloud", d:"Apple ID, iCloud, পাসকোড, MDM"},
+  android: {bn:"Android লক", hue:"#13936a", hue2:"#0a5a40", icon:"lock", d:"FRP, স্ক্রিন লক, ব্র্যান্ড অ্যাকাউন্ট"},
+  software:{bn:"সফটওয়্যার", hue:"#6a46e0", hue2:"#3c2394", icon:"chip", d:"ফ্ল্যাশ, বুটলুপ, রুট, আপডেট"},
+  data:    {bn:"ডেটা ও সিকিউরিটি", hue:"#0a8fa3", hue2:"#055866", icon:"data", d:"রিকভারি, ব্যাকআপ, ভাইরাস রিমুভ"},
+  hardware:{bn:"হার্ডওয়্যার", hue:"#c43a6a", hue2:"#7a1e40", icon:"screen", d:"ডিসপ্লে, ব্যাটারি, চার্জিং পোর্ট"}
+};
+
+/* own = মালিকানা যাচাই লাগবে */
+const S = [
+ {id:"imei-check",cat:"imei",icon:"search",name:"IMEI চেক সার্ভিস",en:"IMEI Check",price:150,time:"৫–১৫ মিনিট",short:"ফোনের IMEI দিয়ে ব্ল্যাকলিস্ট, ওয়ারেন্টি, ক্যারিয়ার ও মডেল তথ্য যাচাই।",about:"পুরোনো ফোন কেনার আগে IMEI চেক করে নিন। আমরা ডিভাইসের আসল মডেল, ব্ল্যাকলিস্ট স্ট্যাটাস, ক্যারিয়ার লক, iCloud/FMI অবস্থা ও ওয়ারেন্টি তথ্য একটি রিপোর্টে দিই।",need:["ফোনের IMEI নম্বর (*#06# ডায়াল করলে পাবেন)"],dev:"সব ব্র্যান্ড"},
+ {id:"imei-registration",cat:"imei",icon:"doc",name:"BTRC NEIR IMEI রেজিস্ট্রেশন সহায়তা",en:"NEIR Registration Help",price:300,time:"১–২৪ ঘণ্টা",short:"বিদেশ থেকে আনা ফোন NEIR সিস্টেমে বৈধভাবে নিবন্ধনে সাহায্য।",about:"বিদেশ থেকে আনা বা উপহার পাওয়া ফোন বাংলাদেশে চালাতে NEIR-এ নিবন্ধন লাগে। আমরা কাগজপত্র প্রস্তুত ও অনলাইন আবেদন পূরণে সাহায্য করি।",need:["IMEI নম্বর","পাসপোর্ট/ক্রয় রশিদের কপি","NID ও নিবন্ধিত সিম"],dev:"সব ব্র্যান্ড"},
+ {id:"imei-restore",cat:"imei",icon:"chip",name:"অরিজিনাল IMEI রিস্টোর",en:"Original IMEI Restore",price:1500,time:"১–৩ ঘণ্টা",short:"বোর্ড রিপেয়ার বা ফ্ল্যাশের পর মুছে যাওয়া ফোনের নিজস্ব IMEI ফিরিয়ে আনা।",about:"কিছু ফ্ল্যাশ বা মাদারবোর্ড রিপেয়ারের পর IMEI 'null' বা '0' দেখায়। আমরা শুধু ফোনের বক্স/স্টিকারে থাকা আসল IMEI পুনরুদ্ধার করি। অন্য IMEI বসানো আইনত নিষিদ্ধ, তাই সেটা করি না।",need:["ফোনের বক্স বা আসল IMEI স্টিকার","ক্রয় রশিদ","মালিকের NID"],dev:"Samsung, Xiaomi, Oppo, Vivo, Realme",own:1},
+ {id:"network-unlock",cat:"imei",icon:"signal",name:"নেটওয়ার্ক / ক্যারিয়ার আনলক",en:"Carrier Unlock",price:2500,time:"১–৭ দিন",short:"AT&T, T-Mobile, Verizon সহ বিদেশি ক্যারিয়ার লক ফোন সব সিমে চালানোর ব্যবস্থা।",about:"আমেরিকা, ইউরোপ বা জাপান থেকে আনা ক্যারিয়ার-লকড ফোন অফিসিয়াল ক্যারিয়ার আনলক রিকোয়েস্টের মাধ্যমে স্থায়ীভাবে আনলক করা হয়। আপডেট দিলেও লক ফেরত আসে না।",need:["IMEI নম্বর","ক্যারিয়ারের নাম ও দেশ","ফোনটি ব্ল্যাকলিস্টেড নয়"],dev:"iPhone, Samsung, Google Pixel, Motorola",own:1},
+ {id:"no-service-fix",cat:"imei",icon:"signal",name:"নো সার্ভিস / নেটওয়ার্ক সমস্যা সমাধান",en:"No Service Fix",price:800,time:"১–৪ ঘণ্টা",short:"সিম ঢুকালে নেটওয়ার্ক না পাওয়া, বারবার সিগন্যাল চলে যাওয়ার সমাধান।",about:"বেসব্যান্ড সমস্যা, APN সেটিং, NEIR নিবন্ধন বা হার্ডওয়্যার জনিত কারণে নেটওয়ার্ক না পেলে আগে কারণ নির্ণয় করি, তারপর সঠিক সমাধান দিই।",need:["ফোন ও সিম কার্ড"],dev:"সব ব্র্যান্ড"},
+
+ {id:"apple-id-remove",cat:"apple",icon:"cloud",name:"Apple ID / iCloud রিমুভ",en:"Apple ID Removal",price:3500,time:"১–৫ দিন",short:"নিজের কেনা ফোনে আগের মালিকের বা ভুলে যাওয়া Apple ID সরানোর অফিসিয়াল প্রক্রিয়া।",about:"Activation Lock-এ আটকে থাকা iPhone/iPad এর জন্য Apple-এর অফিসিয়াল Proof of Purchase রিকোয়েস্ট প্রস্তুত ও জমা দিতে সাহায্য করি, অথবা আগের মালিকের সাথে যোগাযোগ করে রিমোট রিমুভ করাই। শুধুমাত্র বৈধ মালিকের ডিভাইসে কাজ করি।",need:["ক্রয় রশিদ (সিরিয়াল/IMEI সহ)","ফোনের বক্স","মালিকের NID"],dev:"iPhone, iPad, Mac, Apple Watch",own:1},
+ {id:"apple-id-recovery",cat:"apple",icon:"key",name:"Apple ID পাসওয়ার্ড রিকভারি",en:"Apple ID Recovery",price:1000,time:"১–৩ দিন",short:"নিজের Apple ID এর পাসওয়ার্ড বা ভেরিফিকেশন নম্বর হারালে অ্যাকাউন্ট ফিরে পেতে সাহায্য।",about:"আপনার নিজের Apple ID এর পাসওয়ার্ড ভুলে গেলে বা পুরোনো নম্বর বন্ধ থাকলে Apple-এর Account Recovery প্রক্রিয়া ধাপে ধাপে সম্পন্ন করতে সাহায্য করি।",need:["Apple ID ইমেইল","সংশ্লিষ্ট ফোন/ইমেইলে অ্যাক্সেস","মালিকের NID"],dev:"সব Apple ডিভাইস",own:1},
+ {id:"iphone-passcode",cat:"apple",icon:"grid",name:"iPhone পাসকোড ভুলে গেলে রিসেট",en:"iPhone Passcode Reset",price:1200,time:"১–২ ঘণ্টা",short:"পাসকোড ভুলে গেলে বা 'iPhone Unavailable' দেখালে রিস্টোর করে আবার চালু করা।",about:"পাসকোড ভুলে গেলে iTunes/Finder দিয়ে ফোন রিস্টোর করা হয়। ব্যাকআপ না থাকলে ডেটা মুছে যাবে। রিস্টোরের পর নিজের Apple ID দিয়ে ফোন চালু করতে হবে।",need:["নিজের Apple ID ও পাসওয়ার্ড","মালিকানার প্রমাণ"],dev:"iPhone 6s থেকে সর্বশেষ",own:1},
+ {id:"mdm-remove",cat:"apple",icon:"layers",name:"MDM প্রোফাইল রিমুভ",en:"MDM Profile Removal",price:2000,time:"১–২ দিন",short:"অফিস বা স্কুলের রিমোট ম্যানেজমেন্ট প্রোফাইল প্রতিষ্ঠানের অনুমতিসহ সরানো।",about:"কোম্পানি বা প্রতিষ্ঠানের ব্যবহৃত iPhone/iPad কিনলে MDM প্রোফাইল থেকে যায়। প্রতিষ্ঠানের রিলিজ লেটার নিয়ে Apple Business Manager থেকে ডিভাইস রিলিজ করাতে সাহায্য করি।",need:["প্রতিষ্ঠানের রিলিজ লেটার","ক্রয় রশিদ"],dev:"iPhone, iPad, Mac",own:1},
+ {id:"ios-restore",cat:"apple",icon:"refresh",name:"iOS আপডেট / রিস্টোর",en:"iOS Update & Restore",price:500,time:"৩০–৯০ মিনিট",short:"আপডেট আটকে যাওয়া, Apple লোগোতে হ্যাং বা রিকভারি মোডে আটকে থাকা ফোন ঠিক করা।",about:"ডেটা রেখে আপডেট মোড দিয়ে চেষ্টা করি, না হলে ক্লিন রিস্টোর। সাইন করা iOS ভার্সনে আপডেট বা ডাউনগ্রেডও করা হয়।",need:["ফোন","Apple ID পাসওয়ার্ড"],dev:"iPhone, iPad"},
+
+ {id:"frp-remove",cat:"android",icon:"lock",name:"Google FRP লক রিমুভ",en:"FRP / Google Lock",price:800,time:"৩০–৯০ মিনিট",short:"রিসেটের পর আগের Google অ্যাকাউন্ট চাইলে ও মনে না থাকলে লক সরানো।",about:"ফ্যাক্টরি রিসেটের পর Factory Reset Protection চালু হয়। নিজের অ্যাকাউন্ট রিকভার করা না গেলে মালিকানা যাচাই করে FRP সরাই।",need:["ক্রয় রশিদ বা বক্স","মালিকের NID"],dev:"Samsung, Xiaomi, Oppo, Vivo, Realme, Tecno, Infinix",own:1},
+ {id:"screen-lock-remove",cat:"android",icon:"grid",name:"প্যাটার্ন / পিন / পাসওয়ার্ড লক রিমুভ",en:"Screen Lock Removal",price:500,time:"৩০–৬০ মিনিট",short:"স্ক্রিন লক ভুলে গেলে ফোন আবার ব্যবহারযোগ্য করা।",about:"বেশিরভাগ ক্ষেত্রে লক রিমুভে রিসেট লাগে বলে ডেটা মুছে যায়। কিছু মডেলে ডেটা রেখে লক সরানো যায়, আগে চেক করে জানাই।",need:["মালিকানার প্রমাণ","ফোনে যুক্ত Google অ্যাকাউন্টের তথ্য"],dev:"সব Android",own:1},
+ {id:"samsung-account",cat:"android",icon:"user",name:"Samsung অ্যাকাউন্ট লক রিমুভ",en:"Samsung Account Lock",price:1200,time:"১–৩ ঘণ্টা",short:"Samsung অ্যাকাউন্ট রিঅ্যাক্টিভেশন লক বা ভুলে যাওয়া অ্যাকাউন্ট সমস্যার সমাধান।",about:"Reactivation Lock চালু থাকলে রিসেটের পর Samsung অ্যাকাউন্ট চায়। অ্যাকাউন্ট রিকভারি বা মালিকানা যাচাই করে লক সরানো হয়।",need:["ক্রয় রশিদ বা বক্স","মালিকের NID"],dev:"Galaxy S, Note, A, M, Z সিরিজ",own:1},
+ {id:"mi-account",cat:"android",icon:"user",name:"Xiaomi Mi অ্যাকাউন্ট লক রিমুভ",en:"Mi Account Unlock",price:1500,time:"১–৩ দিন",short:"Xiaomi/Redmi/POCO ফোনে 'This device is locked' সমস্যার সমাধান।",about:"Mi অ্যাকাউন্টের পাসওয়ার্ড ভুলে গেলে Xiaomi সাপোর্টে বৈধ আনলক রিকোয়েস্ট করা হয়, বা অ্যাকাউন্ট রিকভারি করা হয়।",need:["ক্রয় রশিদ ও বক্স","মালিকের NID"],dev:"Xiaomi, Redmi, POCO",own:1},
+ {id:"huawei-id",cat:"android",icon:"user",name:"Huawei ID রিমুভ",en:"Huawei ID Removal",price:1500,time:"১–৩ দিন",short:"Huawei/Honor ফোনে ভুলে যাওয়া Huawei ID এর অ্যাক্টিভেশন লক সমাধান।",about:"Huawei ID পাসওয়ার্ড রিসেট বা প্রুফ অব পারচেস দিয়ে Huawei সাপোর্টের মাধ্যমে অ্যাক্টিভেশন লক সরাতে সাহায্য করি।",need:["ক্রয় রশিদ","মালিকের NID"],dev:"Huawei, Honor",own:1},
+ {id:"oppo-vivo-lock",cat:"android",icon:"lock",name:"Oppo / Vivo / Realme লক রিমুভ",en:"Oppo · Vivo · Realme",price:700,time:"৩০–৯০ মিনিট",short:"এই ব্র্যান্ডগুলোর পিন, প্যাটার্ন ও অ্যাকাউন্ট লক সমাধান।",about:"MediaTek ও Qualcomm চিপের Oppo, Vivo, Realme ও OnePlus ফোনে লক রিমুভ ও সফটওয়্যার রিসেট করা হয়।",need:["মালিকানার প্রমাণ"],dev:"Oppo, Vivo, Realme, OnePlus",own:1},
+
+ {id:"firmware-flash",cat:"software",icon:"flash",name:"ফার্মওয়্যার ফ্ল্যাশ",en:"Firmware Flash",price:700,time:"১–২ ঘণ্টা",short:"অফিসিয়াল স্টক রম দিয়ে ফোন নতুনের মতো সফটওয়্যারে ফিরিয়ে আনা।",about:"ফোন স্লো, বারবার রিস্টার্ট বা অ্যাপ ক্র্যাশ করলে মডেল অনুযায়ী অফিসিয়াল ফার্মওয়্যার ফ্ল্যাশ করি। ফ্ল্যাশের আগে ডেটা ব্যাকআপ নেওয়া যায়।",need:["ফোন ও চার্জার"],dev:"সব Android"},
+ {id:"dead-boot",cat:"software",icon:"plug",name:"ডেড বুট রিপেয়ার",en:"Dead Boot Repair",price:1500,time:"২–২৪ ঘণ্টা",short:"ভুল ফ্ল্যাশ বা আপডেটের পর একদম চালু না হওয়া ফোন জীবিত করা।",about:"স্ক্রিনে কিছু না আসলে, শুধু কম্পিউটারে চিনলে EDL/BROM মোডে ফ্ল্যাশ করে বুট রিপেয়ার করা হয়। হার্ডওয়্যার সমস্যা হলে আগে জানাই।",need:["ফোন"],dev:"Qualcomm, MediaTek, Unisoc চিপসেট"},
+ {id:"bootloop-fix",cat:"software",icon:"refresh",name:"বুটলুপ / লোগোতে হ্যাং ফিক্স",en:"Bootloop Fix",price:600,time:"১–২ ঘণ্টা",short:"লোগো দেখিয়ে বারবার রিস্টার্ট হওয়া ফোন ঠিক করা, সম্ভব হলে ডেটা রেখে।",about:"ক্যাশ ক্লিয়ার, সেফ মোড বা ফার্মওয়্যার রিপেয়ার দিয়ে আগে ডেটা রেখে চেষ্টা করি। ব্যর্থ হলে আপনার অনুমতি নিয়ে ক্লিন ফ্ল্যাশ।",need:["ফোন"],dev:"সব ব্র্যান্ড"},
+ {id:"bootloader-unlock",cat:"software",icon:"unlock",name:"বুটলোডার আনলক",en:"Bootloader Unlock",price:1000,time:"১ ঘণ্টা – ৭ দিন",short:"কাস্টম রম বা রুটের জন্য ব্র্যান্ডের অফিসিয়াল পদ্ধতিতে বুটলোডার আনলক।",about:"Xiaomi-র ওয়েটিং পিরিয়ড, OnePlus ও Pixel-এর OEM আনলক সহ ব্র্যান্ড অনুযায়ী প্রক্রিয়া সম্পন্ন করি। এতে ডেটা মুছে যায় ও কিছু ক্ষেত্রে ওয়ারেন্টি বাতিল হয়।",need:["ফোন","ব্র্যান্ড অ্যাকাউন্ট (যেমন Mi অ্যাকাউন্ট)"],dev:"Xiaomi, OnePlus, Google Pixel, Motorola"},
+ {id:"root-unroot",cat:"software",icon:"chip",name:"রুট / আনরুট",en:"Root & Unroot",price:800,time:"১–২ ঘণ্টা",short:"Magisk দিয়ে নিরাপদ রুট, অথবা রুট সরিয়ে ফোন স্টক অবস্থায় ফেরানো।",about:"ব্যাংকিং অ্যাপ না চললে আনরুট করে স্টক অবস্থায় ফেরাই। রুট করতে চাইলে আগে ঝুঁকিগুলো বুঝিয়ে বলি।",need:["আনলকড বুটলোডার (রুটের জন্য)"],dev:"বেশিরভাগ Android"},
+ {id:"region-change",cat:"software",icon:"globe",name:"রিজিয়ন / ভাষা / CSC চেঞ্জ",en:"Region & Language",price:900,time:"১–২ ঘণ্টা",short:"চায়না বা অন্য দেশের ফোনে বাংলা ভাষা, Google সার্ভিস ও লোকাল ফিচার আনা।",about:"Samsung CSC বদল, Xiaomi China রম থেকে Global রম, Google Play Services ইনস্টল ও বাংলা কিবোর্ড সেটআপ করা হয়।",need:["ফোন","আনলকড বুটলোডার (কিছু মডেলে)"],dev:"Samsung, Xiaomi, Huawei, Oppo"},
+
+ {id:"data-recovery",cat:"data",icon:"download",name:"ডেটা রিকভারি",en:"Data Recovery",price:2000,time:"১–৩ দিন",short:"নষ্ট বা চালু না হওয়া ফোন থেকে ছবি, কন্টাক্ট ও ফাইল উদ্ধার।",about:"পানিতে পড়া, ডেড বা ভাঙা ফোন থেকে ডেটা উদ্ধারের চেষ্টা করি। উদ্ধার না হলে শুধু ডায়াগনস্টিক ফি নেওয়া হয়।",need:["ফোন","কোন ডেটা দরকার তার তালিকা"],dev:"Android ও iPhone"},
+ {id:"data-transfer",cat:"data",icon:"layers",name:"ব্যাকআপ ও ডেটা ট্রান্সফার",en:"Backup & Transfer",price:400,time:"৩০–৯০ মিনিট",short:"পুরোনো ফোন থেকে নতুন ফোনে কন্টাক্ট, WhatsApp চ্যাট, ছবি সব নিয়ে যাওয়া।",about:"Android থেকে iPhone বা উল্টোটা, WhatsApp চ্যাট ট্রান্সফার, ফুল ব্যাকআপ পেনড্রাইভ বা কম্পিউটারে রাখা হয়।",need:["দুটি ফোন","অ্যাকাউন্ট পাসওয়ার্ড"],dev:"সব ব্র্যান্ড"},
+ {id:"virus-remove",cat:"data",icon:"bug",name:"ভাইরাস / বিজ্ঞাপন সমস্যা দূর",en:"Malware Cleanup",price:400,time:"৩০–৬০ মিনিট",short:"হঠাৎ বিজ্ঞাপন আসা, অজানা অ্যাপ ইনস্টল হওয়া বা ফোন গরম হওয়ার সমস্যা দূর।",about:"ক্ষতিকর অ্যাপ ও ডিভাইস অ্যাডমিন খুঁজে সরাই, সন্দেহজনক অ্যাকাউন্ট অ্যাক্সেস চেক করি, প্রয়োজনে পাসওয়ার্ড বদলে দিতে সাহায্য করি।",need:["ফোন ও পিন"],dev:"সব Android"},
+ {id:"security-checkup",cat:"data",icon:"shield",name:"ফোন সিকিউরিটি চেকআপ",en:"Security Checkup",price:300,time:"৩০ মিনিট",short:"স্পাইওয়্যার, অচেনা ডিভাইস লগইন ও দুর্বল সেটিং পরীক্ষা করে নিরাপদ করা।",about:"Google/Apple অ্যাকাউন্টে টু-স্টেপ ভেরিফিকেশন চালু, অচেনা লগইন সরানো, পারমিশন রিভিউ ও স্ক্রিন লক সেটআপ করি।",need:["ফোন ও অ্যাকাউন্ট তথ্য"],dev:"সব ব্র্যান্ড"},
+
+ {id:"display-replace",cat:"hardware",icon:"screen",name:"ডিসপ্লে রিপ্লেসমেন্ট",en:"Display Replacement",price:1800,time:"১–৩ ঘণ্টা",short:"ভাঙা বা দাগ পড়া স্ক্রিন অরিজিনাল বা ভালো মানের ডিসপ্লে দিয়ে বদল।",about:"অরিজিনাল, OLED ও ইনসেল ডিসপ্লের মধ্যে অপশন দিই, দাম আলাদা। লাগানোর পর টাচ, ফেস আইডি ও ট্রু টোন চেক করা হয়।",need:["ফোন","ফোনের মডেল নাম"],dev:"সব ব্র্যান্ড"},
+ {id:"battery-replace",cat:"hardware",icon:"battery",name:"ব্যাটারি চেক ও রিপ্লেসমেন্ট",en:"Battery Service",price:1200,time:"৩০–৯০ মিনিট",short:"দ্রুত চার্জ ফুরানো বা ফুলে যাওয়া ব্যাটারি পরীক্ষা ও নতুন ব্যাটারি লাগানো।",about:"ব্যাটারি হেলথ ও সাইকেল কাউন্ট দেখে রিপোর্ট দিই। ফুলে যাওয়া ব্যাটারি দ্রুত বদলানো জরুরি, কারণ এটি নিরাপদ নয়।",need:["ফোন"],dev:"সব ব্র্যান্ড"},
+ {id:"charging-port",cat:"hardware",icon:"plug",name:"চার্জিং পোর্ট রিপেয়ার",en:"Charging Port Repair",price:600,time:"১–২ ঘণ্টা",short:"চার্জ না নেওয়া, ঢিলা কানেকশন বা ধীরে চার্জ হওয়ার সমস্যা ঠিক করা।",about:"প্রথমে পোর্ট পরিষ্কার করে দেখি, তাতে না হলে পোর্ট বা সাব-বোর্ড বদল। ফাস্ট চার্জিং ঠিক আছে কিনা টেস্ট করে দিই।",need:["ফোন","আপনার চার্জার (থাকলে)"],dev:"সব ব্র্যান্ড"}
+];
+
+const bn = n => String(n).replace(/\d/g,d=>"০১২৩৪৫৬৭৮৯"[d]);
+const tk = n => "৳" + bn(n.toLocaleString("en-IN"));
+const byId = id => S.find(s=>s.id===id);
+
+/* generated illustration per service */
+let artN=0;
+function art(s, big){
+  const c=CATS[s.cat], g="g"+(artN++);
+  const p=I[s.icon];
+  return `<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${s.name}">
+  <defs>
+    <linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c.hue}"/><stop offset="1" stop-color="${c.hue2}"/></linearGradient>
+    <linearGradient id="${g}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c2b42"/><stop offset="1" stop-color="#0c1522"/></linearGradient>
+    <pattern id="${g}p" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="#ffffff" fill-opacity=".18"/></pattern>
+  </defs>
+  <rect width="320" height="200" fill="url(#${g})"/>
+  <rect width="320" height="200" fill="url(#${g}p)"/>
+  <path d="M0 150 H70 L90 130 H118 M202 70 H232 L250 52 H320 M202 150 H240 L256 166 H320" stroke="#ffffff" stroke-opacity=".28" stroke-width="2" fill="none"/>
+  <circle cx="90" cy="130" r="4" fill="#ffffff" fill-opacity=".5"/><circle cx="250" cy="52" r="4" fill="#ffffff" fill-opacity=".5"/>
+  <g transform="rotate(${big?-6:-8} 160 110)">
+    <rect x="114" y="22" width="92" height="176" rx="16" fill="#0a111c"/>
+    <rect x="119" y="27" width="82" height="166" rx="12" fill="url(#${g}s)"/>
+    <rect x="146" y="32" width="28" height="7" rx="3.5" fill="#05090f"/>
+    <circle cx="160" cy="98" r="27" fill="${c.hue}" fill-opacity=".22"/>
+    <g transform="translate(142 80) scale(1.5)" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${p}"/></g>
+    <rect x="131" y="140" width="58" height="5" rx="2.5" fill="#ffffff" fill-opacity=".35"/>
+    <rect x="138" y="151" width="44" height="5" rx="2.5" fill="#ffffff" fill-opacity=".18"/>
+    <rect x="131" y="166" width="58" height="16" rx="8" fill="${c.hue}"/>
+  </g>
+  <g transform="translate(236 112)"><circle r="22" fill="#ffffff"/><g transform="translate(-11 -11) scale(.92)" fill="none" stroke="${c.hue2}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${s.own?I.shield:I.check}"/></g></g>
+  </svg>`;
+}
+
+function card(s){
+  return `<a class="card-s" href="#service-${s.id}">
+    <div class="art">${art(s)}</div>
+    <div class="b">
+      <span class="cat">${CATS[s.cat].bn}</span>
+      <h3>${s.name}</h3>
+      <p>${s.short}</p>
+      <div class="f"><span class="price">${tk(s.price)} <span class="muted" style="font-weight:400">থেকে</span></span><span class="go">বিস্তারিত ${ic("arrow")}</span></div>
+    </div></a>`;
+}
+
+const STEPS = [
+  ["যোগাযোগ","WhatsApp, ফোন বা ফর্মে মডেল ও সমস্যা জানান। আমরা দাম ও সময় নিশ্চিত করি।"],
+  ["যাচাই","লক ও অ্যাকাউন্ট সার্ভিসে ক্রয় রশিদ, বক্স ও NID দেখে মালিকানা নিশ্চিত করি।"],
+  ["কাজ","দোকানে বা রিমোটে কাজ শুরু হয়। প্রতিটি ধাপে আপডেট পাঠাই।"],
+  ["ডেলিভারি","ফোন টেস্ট করে বুঝিয়ে দিই। কাজ না হলে সার্ভিস চার্জ লাগে না।"]
+];
+const stepsHTML = () => `<div class="steps">${STEPS.map((s,i)=>`<div class="step"><span class="n">ধাপ ${bn(i+1)}</span><h3>${s[0]}</h3><p>${s[1]}</p></div>`).join("")}</div>`;
+
+const OWN_NOTE = `<div class="notice">${ic("info")}<div><b>শুধুমাত্র প্রকৃত মালিকের জন্য।</b> এই সার্ভিসে ক্রয় রশিদ, বক্স ও জাতীয় পরিচয়পত্র দেখাতে হবে। চোরাই, হারানো বা ব্ল্যাকলিস্টেড ডিভাইসে আমরা কাজ করি না।</div></div>`;
+
+const ctaBand = () => `<section><div class="wrap"><div class="cta-band">
+  <div><h2>আপনার ফোনের সমস্যা কী?</h2><p>মডেল আর সমস্যা লিখে পাঠান, ১৫ মিনিটের মধ্যে দাম জানিয়ে দেব।</p></div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap"><a class="btn" href="#contact">${ic("wa")} অর্ডার করুন</a><a class="btn ghost" href="#services">সব সার্ভিস</a></div>
+</div></div></section>`;
+
+/* ===== pages ===== */
+const P = {};
+P.home = () => `
+<section class="hero"><div class="wrap hero-grid">
+  <div>
+    <span class="eyebrow">মোবাইল আনলক ও সফটওয়্যার ল্যাব</span>
+    <h1>লক হওয়া ফোন আবার <mark>আপনার হাতে</mark></h1>
+    <p class="lead">IMEI সার্ভিস, Apple ID রিমুভ, FRP ও স্ক্রিন লক, ফার্মওয়্যার ফ্ল্যাশ সহ ${bn(S.length)}টি সার্ভিস। দোকানে এসে বা অনলাইনে, মালিকানা যাচাই করে নিরাপদে কাজ।</p>
+    <div class="acts"><a class="btn" href="#services">সব সার্ভিস দেখুন ${ic("arrow")}</a><a class="btn ghost" href="#contact">${ic("wa")} দাম জানতে মেসেজ দিন</a></div>
+    <div class="checks"><span>${ic("check")} কাজ না হলে টাকা নেই</span><span>${ic("check")} ডেটার গোপনীয়তা</span><span>${ic("check")} রিমোট সাপোর্ট</span></div>
+  </div>
+  <div class="hero-phone"><div class="dev"><div class="scr">
+    <div class="notch"></div>
+    <div class="dial">*#06#</div>
+    <div class="card"><small>IMEI 1</small><div class="mono">35 209 911 ••••• 4</div></div>
+    <div class="card"><small>স্ট্যাটাস রিপোর্ট</small>
+      <div class="stat" style="margin-top:6px"><span class="dot"></span> ব্ল্যাকলিস্ট: ক্লিন</div>
+      <div class="stat"><span class="dot"></span> NEIR: নিবন্ধিত</div>
+      <div class="stat"><span class="dot" style="background:#ff7a3d;box-shadow:0 0 0 4px rgba(255,122,61,.2)"></span> ক্যারিয়ার: লকড</div>
+    </div>
+    <div class="unl">${ic("unlock")} আনলক রিকোয়েস্ট</div>
+  </div></div></div>
+</div></section>
+
+<div class="strip"><div class="wrap">
+  <div class="t">${ic("shield")}<div><h3>মালিকানা যাচাই</h3><p>প্রতিটি লক সার্ভিসে কাগজ দেখে কাজ</p></div></div>
+  <div class="t">${ic("tag")}<div><h3>আগে দাম, পরে কাজ</h3><p>লুকানো কোনো চার্জ নেই</p></div></div>
+  <div class="t">${ic("clock")}<div><h3>দ্রুত সমাধান</h3><p>বেশিরভাগ কাজ ১–২ ঘণ্টায়</p></div></div>
+  <div class="t">${ic("data")}<div><h3>ডেটা নিরাপদ</h3><p>অনুমতি ছাড়া কিছু মুছি না</p></div></div>
+</div></div>
+
+<section><div class="wrap">
+  <div class="sec-head"><div><span class="eyebrow">জনপ্রিয় সার্ভিস</span><h2>সবচেয়ে বেশি যেসব কাজ আসে</h2></div><a class="btn ghost sm" href="#services">সব ${bn(S.length)}টি সার্ভিস ${ic("arrow")}</a></div>
+  <div class="grid">${["imei-check","apple-id-remove","frp-remove","screen-lock-remove","network-unlock","imei-registration","firmware-flash","data-recovery"].map(id=>card(byId(id))).join("")}</div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap">
+  <div class="sec-head"><div><span class="eyebrow">ক্যাটাগরি</span><h2>সমস্যা অনুযায়ী খুঁজুন</h2></div></div>
+  <div class="cats">${Object.entries(CATS).map(([k,c])=>`<a class="cat-tile" href="#services" data-cat="${k}"><span class="ic" style="background:${c.hue}">${ic(c.icon)}</span><div><h3>${c.bn}</h3><p>${c.d} · ${bn(S.filter(s=>s.cat===k).length)}টি</p></div></a>`).join("")}</div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap">
+  <div class="sec-head"><div><span class="eyebrow">কিভাবে কাজ করি</span><h2>চার ধাপে আপনার ফোন রেডি</h2></div><a class="btn ghost sm" href="#process">বিস্তারিত ${ic("arrow")}</a></div>
+  ${stepsHTML()}
+</div></section>
+
+<section style="padding-top:0"><div class="wrap">
+  <div class="sec-head"><div><span class="eyebrow">যেসব ব্র্যান্ডে কাজ করি</span><h2>প্রায় সব জনপ্রিয় মডেল</h2></div></div>
+  <div class="brands">${["iPhone","iPad","Samsung","Xiaomi","Redmi","POCO","Oppo","Vivo","Realme","OnePlus","Huawei","Honor","Google Pixel","Motorola","Tecno","Infinix","Itel","Symphony","Walton","Nokia"].map(b=>`<span>${b}</span>`).join("")}</div>
+</div></section>
+${ctaBand()}`;
+
+let filterCat="all", filterQ="";
+P.services = () => `
+<div class="wrap phead"><div class="crumb"><a href="#home">হোম</a> / সার্ভিস</div>
+  <h1>আমাদের সব সার্ভিস</h1><p>${bn(S.length)}টি সার্ভিস, ৬টি ক্যাটাগরিতে। যেকোনো সার্ভিসে ক্লিক করে দাম, সময়, কী কী লাগবে সব দেখুন।</p></div>
+<div class="wrap">
+  <div class="filters">
+    <label class="search" for="q">${ic("search")}<input id="q" type="search" placeholder="সার্ভিস খুঁজুন… যেমন IMEI, FRP" value="${filterQ}"></label>
+    <button class="chip ${filterCat==="all"?"on":""}" data-f="all">সব</button>
+    ${Object.entries(CATS).map(([k,c])=>`<button class="chip ${filterCat===k?"on":""}" data-f="${k}">${c.bn}</button>`).join("")}
+  </div>
+  <div class="grid" id="sgrid"></div>
+</div>
+${ctaBand()}`;
+function drawGrid(){
+  const g=document.getElementById("sgrid"); if(!g) return;
+  const q=filterQ.trim().toLowerCase();
+  const list=S.filter(s=>(filterCat==="all"||s.cat===filterCat)&&(!q||(s.name+s.en+s.short+s.dev).toLowerCase().includes(q)));
+  g.innerHTML=list.length?list.map(card).join(""):`<div class="empty" style="grid-column:1/-1">“${filterQ}” এর সাথে মেলে এমন সার্ভিস পাওয়া যায়নি। অন্য শব্দে খুঁজুন বা <a href="#contact">সরাসরি জিজ্ঞেস করুন</a>।</div>`;
+}
+
+P.detail = (s) => {
+  const rel=S.filter(x=>x.cat===s.cat&&x.id!==s.id).slice(0,3);
+  const ticket="UL-"+s.id.slice(0,3).toUpperCase()+"-"+String(1000+S.indexOf(s)*37);
+  return `
+<div class="wrap phead"><div class="crumb"><a href="#home">হোম</a> / <a href="#services">সার্ভিস</a> / ${CATS[s.cat].bn}</div>
+  <h1>${s.name}</h1><p>${s.short}</p></div>
+<div class="wrap detail">
+  <div>
+    <div class="d-art">${art(s,true)}</div>
+    <div class="d-body">
+      ${s.own?OWN_NOTE:""}
+      <div><h2>সার্ভিসটি সম্পর্কে</h2><p style="margin-top:10px">${s.about}</p></div>
+      <div><h2>যা যা লাগবে</h2><ul class="ticks need">${s.need.map(n=>`<li>${ic("doc")}<span>${n}</span></li>`).join("")}</ul></div>
+      <div><h2>এই সার্ভিসে যা পাবেন</h2><ul class="ticks">
+        <li>${ic("check")}<span>কাজ শুরুর আগে ফ্রি ডায়াগনসিস ও নির্দিষ্ট দাম</span></li>
+        <li>${ic("check")}<span>প্রতিটি ধাপে WhatsApp এ আপডেট</span></li>
+        <li>${ic("check")}<span>কাজ শেষে ফুল টেস্ট ও ${s.cat==="hardware"?"পার্টসে ৩ মাসের ওয়ারেন্টি":"৭ দিনের সাপোর্ট"}</span></li>
+        <li>${ic("check")}<span>কাজ না হলে সার্ভিস চার্জ ফেরত</span></li></ul></div>
+      <div><h2>কিভাবে হবে</h2><div style="margin-top:14px">${stepsHTML()}</div></div>
+    </div>
+  </div>
+  <aside class="side">
+    <span class="eyebrow">${s.en}</span>
+    <div class="pr">${tk(s.price)} <small>থেকে</small></div>
+    <div class="kv">
+      <div><span>সময়</span><span>${s.time}</span></div>
+      <div><span>ডিভাইস</span><span>${s.dev}</span></div>
+      <div><span>ক্যাটাগরি</span><span>${CATS[s.cat].bn}</span></div>
+      <div><span>মালিকানা যাচাই</span><span>${s.own?"প্রয়োজন":"প্রয়োজন নেই"}</span></div>
+    </div>
+    <a class="btn" href="#contact" data-order="${s.id}">${ic("wa")} এই সার্ভিস অর্ডার করুন</a>
+    <a class="btn ghost" href="#pricing">পুরো মূল্য তালিকা</a>
+    <p class="hint">মডেলভেদে দাম কম-বেশি হতে পারে। চূড়ান্ত দাম কাজের আগে জানানো হবে।</p>
+    <div class="ticket">সার্ভিস কোড · ${ticket}</div>
+  </aside>
+</div>
+${rel.length?`<section><div class="wrap"><div class="sec-head"><div><span class="eyebrow">সম্পর্কিত</span><h2>একই ধরনের অন্যান্য সার্ভিস</h2></div></div><div class="grid">${rel.map(card).join("")}</div></div></section>`:""}`;
+};
+
+P.pricing = () => `
+<div class="wrap phead"><div class="crumb"><a href="#home">হোম</a> / মূল্য তালিকা</div>
+  <h1>মূল্য তালিকা</h1><p>সব দাম “থেকে” শুরু। মডেল ও সমস্যার জটিলতা অনুযায়ী চূড়ান্ত দাম কাজের আগে জানানো হয়।</p></div>
+<div class="wrap" style="margin-top:24px"><div class="tbl-wrap"><table>
+  <thead><tr><th>সার্ভিস</th><th>ডিভাইস</th><th>সময়</th><th>দাম</th></tr></thead>
+  <tbody>${Object.entries(CATS).map(([k,c])=>`<tr class="grp"><td colspan="4">${c.bn}</td></tr>`+S.filter(s=>s.cat===k).map(s=>`<tr><td><a href="#service-${s.id}">${s.name}</a></td><td class="muted">${s.dev}</td><td>${s.time}</td><td class="p">${tk(s.price)}+</td></tr>`).join("")).join("")}</tbody>
+</table></div></div>
+${ctaBand()}`;
+
+P.process = () => `
+<div class="wrap phead"><div class="crumb"><a href="#home">হোম</a> / কিভাবে কাজ করি</div>
+  <h1>কিভাবে কাজ করি</h1><p>দোকানে এসে বা দূর থেকে, দুইভাবেই সার্ভিস নিতে পারবেন। প্রতিটি কাজ স্বচ্ছভাবে হয়।</p></div>
+<section style="padding-top:28px"><div class="wrap">${stepsHTML()}</div></section>
+<section style="padding-top:0"><div class="wrap two">
+  <div class="panel prose"><span class="eyebrow">দোকানে এসে</span><h2 style="margin-top:8px">ইন-স্টোর সার্ভিস</h2>
+    <p>ফোন, চার্জার আর প্রয়োজনীয় কাগজ নিয়ে আসুন। আপনার সামনেই ডায়াগনসিস করে দাম জানাই। ছোট কাজ অপেক্ষা করতে করতেই হয়ে যায়।</p>
+    <ul class="ticks"><li>${ic("check")}<span>সামনে বসে কাজ দেখতে পারবেন</span></li><li>${ic("check")}<span>ক্যাশ, বিকাশ, নগদ পেমেন্ট</span></li></ul></div>
+  <div class="panel prose"><span class="eyebrow">অনলাইনে</span><h2 style="margin-top:8px">রিমোট সার্ভিস</h2>
+    <p>IMEI চেক, ক্যারিয়ার আনলক, NEIR সহায়তা ও কিছু সফটওয়্যার কাজ অনলাইনে হয়। দেশের যেকোনো জেলা থেকে অর্ডার দিন।</p>
+    <ul class="ticks"><li>${ic("check")}<span>WhatsApp এ IMEI ও কাগজের ছবি পাঠান</span></li><li>${ic("check")}<span>কাজ শেষে রিপোর্ট বা কনফার্মেশন পাবেন</span></li></ul></div>
+</div></section>
+<section style="padding-top:0"><div class="wrap">${OWN_NOTE}</div></section>
+${ctaBand()}`;
+
+const FAQ=[
+ ["IMEI নম্বর কোথায় পাব?","ফোনে *#06# ডায়াল করুন। এছাড়া ফোনের বক্সে, সেটিংসের About Phone অংশে বা iPhone এর সিম ট্রে-তে IMEI লেখা থাকে।"],
+ ["Apple ID রিমুভ করতে কী কী লাগবে?","ফোনের ক্রয় রশিদ যাতে সিরিয়াল বা IMEI লেখা আছে, ফোনের বক্স এবং আপনার NID। রশিদ না থাকলে আগের মালিকের সাথে যোগাযোগ করে রিমুভ করানোই একমাত্র বৈধ উপায়।"],
+ ["লক খুললে কি ডেটা মুছে যাবে?","বেশিরভাগ লক রিমুভে ফোন রিসেট করতে হয়, তাই ডেটা মুছে যায়। কিছু মডেলে ডেটা রেখে কাজ করা যায়। কাজ শুরুর আগে আমরা স্পষ্ট করে জানিয়ে দিই।"],
+ ["চোরাই বা কুড়িয়ে পাওয়া ফোন আনলক করেন?","না। মালিকানার প্রমাণ ছাড়া কোনো লক বা অ্যাকাউন্ট সার্ভিস করা হয় না। কুড়িয়ে পাওয়া ফোন নিকটস্থ থানায় জমা দিন।"],
+ ["কাজ না হলে টাকা ফেরত পাব?","হ্যাঁ। কাজ সফল না হলে সার্ভিস চার্জ নেওয়া হয় না। শুধু ডেটা রিকভারির মতো কাজে ডায়াগনস্টিক ফি থাকতে পারে, যা আগেই জানানো হয়।"],
+ ["নেটওয়ার্ক আনলক কি স্থায়ী?","হ্যাঁ। অফিসিয়াল ক্যারিয়ার আনলক হলে আপডেট বা রিসেট দিলেও লক ফেরত আসে না।"],
+ ["ঢাকার বাইরে থেকে সার্ভিস নেওয়া যাবে?","অনলাইন সার্ভিসগুলো দেশের যেকোনো জায়গা থেকে নেওয়া যায়। হার্ডওয়্যার কাজের জন্য কুরিয়ারে ফোন পাঠাতে পারেন।"],
+ ["পেমেন্ট কিভাবে করব?","ক্যাশ, বিকাশ, নগদ ও রকেট গ্রহণ করা হয়। অনলাইন সার্ভিসে কাজ শুরুর আগে অর্ধেক অগ্রিম দিতে হয়।"]
+];
+P.faq = () => `
+<div class="wrap phead"><div class="crumb"><a href="#home">হোম</a> / প্রশ্নোত্তর</div><h1>সাধারণ প্রশ্নোত্তর</h1><p>উত্তর না পেলে সরাসরি মেসেজ দিন।</p></div>
+<section style="padding-top:28px"><div class="wrap faq">${FAQ.map((f,i)=>`<details ${i===0?"open":""}><summary>${f[0]}</summary><p>${f[1]}</p></details>`).join("")}</div></section>
+${ctaBand()}`;
+
+P.about = () => `
+<div class="wrap phead"><div class="crumb"><a href="#home">হোম</a> / আমাদের সম্পর্কে</div><h1>আমাদের সম্পর্কে</h1></div>
+<section style="padding-top:28px"><div class="wrap two">
+  <div class="prose">
+    <h2>সফটওয়্যার আর আনলক নিয়েই আমাদের কাজ</h2>
+    <p>${CONFIG.brand} একটি মোবাইল সফটওয়্যার ও আনলক সার্ভিস সেন্টার। IMEI, অ্যাকাউন্ট লক, ফার্মওয়্যার আর ডেটা নিয়ে যেসব সমস্যায় সাধারণ দোকান হাত দেয় না, সেগুলোই আমাদের মূল কাজ।</p>
+    <p>আমাদের নিয়ম একটাই: ফোন যার, কাজ তার জন্য। তাই প্রতিটি লক সার্ভিসে মালিকানা যাচাই করি। এতে আপনার ফোনও নিরাপদ থাকে, অন্যের ফোনও।</p>
+    <p>কাজের আগে দাম, কাজের সময় আপডেট, কাজের পরে সাপোর্ট। এভাবেই আমরা কাজ করি।</p>
+  </div>
+  <div class="panel values">
+    <div>${ic("shield")}<div><h3>আইন মেনে কাজ</h3><p>অন্য IMEI বসানো বা চোরাই ফোন আনলক আমরা করি না।</p></div></div>
+    <div>${ic("tag")}<div><h3>স্বচ্ছ দাম</h3><p>যে দাম বলা হয়, সেটাই নেওয়া হয়।</p></div></div>
+    <div>${ic("data")}<div><h3>গোপনীয়তা</h3><p>আপনার ছবি, মেসেজ বা অ্যাকাউন্টে অনুমতি ছাড়া হাত দিই না।</p></div></div>
+    <div>${ic("clock")}<div><h3>সময়মতো ডেলিভারি</h3><p>দেরি হলে আগেই জানাই, কারণসহ।</p></div></div>
+  </div>
+</div></section>
+${ctaBand()}`;
+
+let orderPick="";
+P.contact = () => `
+<div class="wrap phead"><div class="crumb"><a href="#home">হোম</a> / যোগাযোগ</div><h1>অর্ডার ও যোগাযোগ</h1><p>ফর্ম পূরণ করলে একটি রেডি মেসেজ তৈরি হবে। সেটি WhatsApp এ পাঠালেই আমরা দাম ও সময় জানিয়ে দেব।</p></div>
+<section style="padding-top:28px"><div class="wrap two">
+  <div class="panel">
+    <form id="orderForm" novalidate>
+      <label for="o-service">সার্ভিস
+        <select id="o-service">${Object.entries(CATS).map(([k,c])=>`<optgroup label="${c.bn}">${S.filter(s=>s.cat===k).map(s=>`<option value="${s.id}" ${s.id===orderPick?"selected":""}>${s.name}</option>`).join("")}</optgroup>`).join("")}</select></label>
+      <div class="row">
+        <label for="o-name">আপনার নাম<input id="o-name" placeholder="যেমন: রাকিব হাসান" required></label>
+        <label for="o-phone">মোবাইল নম্বর<input id="o-phone" inputmode="tel" placeholder="01XXXXXXXXX" required></label>
+      </div>
+      <div class="row">
+        <label for="o-model">ফোনের মডেল<input id="o-model" placeholder="যেমন: iPhone 13 Pro" required></label>
+        <label for="o-imei">IMEI <span class="hint">(*#06# ডায়াল করুন)</span><input id="o-imei" inputmode="numeric" maxlength="15" placeholder="১৫ সংখ্যা" class="mono"></label>
+      </div>
+      <label for="o-note">সমস্যার বিবরণ<textarea id="o-note" placeholder="কী সমস্যা হচ্ছে, কবে থেকে…"></textarea></label>
+      <p class="hint" id="o-err" style="color:var(--accent)" hidden></p>
+      <button class="btn" type="submit">${ic("wa")} মেসেজ তৈরি করুন</button>
+    </form>
+    <div class="out" id="out" hidden style="margin-top:18px">
+      <b>আপনার মেসেজ প্রস্তুত</b>
+      <pre id="outText"></pre>
+      <div class="acts"><button class="btn sm" id="copyBtn" type="button">${ic("copy")} কপি করুন</button><a class="btn ghost sm" id="waBtn" target="_blank" rel="noopener">${ic("wa")} WhatsApp এ খুলুন</a></div>
+      <p class="hint">WhatsApp না খুললে মেসেজটি কপি করে নিচের নম্বরে পাঠান।</p>
+    </div>
+  </div>
+  <div class="info">
+    <div class="it">${ic("phone")}<div><small>ফোন ও WhatsApp</small><b class="mono">${CONFIG.phone}</b></div></div>
+    <div class="it">${ic("pin")}<div><small>ঠিকানা</small><b>${CONFIG.address}</b></div></div>
+    <div class="it">${ic("doc")}<div><small>ইমেইল</small><b class="mono" style="font-size:15px">${CONFIG.email}</b></div></div>
+    <div class="it">${ic("clock")}<div style="flex:1"><small>খোলার সময়</small>
+      <div class="hours"><div><span>শনি – বৃহস্পতি</span><span>১০:০০ – ২১:০০</span></div><div><span>শুক্রবার</span><span>১৫:০০ – ২১:০০</span></div></div></div></div>
+    ${OWN_NOTE}
+  </div>
+</div></section>`;
+
+/* ===== router ===== */
+const app=document.getElementById("app");
+function route(){
+  const h=(location.hash||"#home").slice(1);
+  let key=h, html;
+  if(h.startsWith("service-")&&byId(h.slice(8))){ html=P.detail(byId(h.slice(8))); key="services"; document.title=byId(h.slice(8)).name+" · "+CONFIG.brand; }
+  else { if(!P[h]||h==="detail") key="home"; html=P[key](); document.title=CONFIG.brand; }
+  artN=0; app.innerHTML=html;
+  document.querySelectorAll("nav.main a").forEach(a=>a.classList.toggle("on",a.dataset.r===key));
+  document.getElementById("nav").classList.remove("open");
+  window.scrollTo(0,0);
+  if(key==="services"&&!h.startsWith("service-")) drawGrid();
+}
+window.addEventListener("hashchange",route);
+
+document.addEventListener("click",e=>{
+  const f=e.target.closest("[data-f]");
+  if(f){ filterCat=f.dataset.f; document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c===f)); drawGrid(); return; }
+  const c=e.target.closest("[data-cat]"); if(c){ filterCat=c.dataset.cat; filterQ=""; }
+  const o=e.target.closest("[data-order]"); if(o){ orderPick=o.dataset.order; }
+  if(e.target.closest("#copyBtn")){
+    const t=document.getElementById("outText").textContent;
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("কপি হয়েছে")).catch(()=>{
+      const r=document.createRange(); r.selectNodeContents(document.getElementById("outText")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("টেক্সট সিলেক্ট করা হয়েছে, কপি করুন");
+    });
+  }
+});
+document.addEventListener("input",e=>{ if(e.target.id==="q"){ filterQ=e.target.value; drawGrid(); } });
+document.addEventListener("submit",e=>{
+  if(e.target.id!=="orderForm") return;
+  e.preventDefault();
+  const v=id=>document.getElementById(id).value.trim();
+  const err=document.getElementById("o-err");
+  if(!v("o-name")||!v("o-phone")||!v("o-model")){ err.textContent="নাম, মোবাইল নম্বর ও ফোনের মডেল দিন।"; err.hidden=false; return; }
+  const imei=v("o-imei");
+  if(imei&&!/^\d{15}$/.test(imei)){ err.textContent="IMEI হতে হবে ১৫ সংখ্যার। *#06# ডায়াল করে দেখে নিন।"; err.hidden=false; return; }
+  err.hidden=true;
+  const s=byId(v("o-service"));
+  const msg=`আসসালামু আলাইকুম, আমি একটি সার্ভিস নিতে চাই।\n\nসার্ভিস: ${s.name}\nনাম: ${v("o-name")}\nমোবাইল: ${v("o-phone")}\nফোনের মডেল: ${v("o-model")}`+(imei?`\nIMEI: ${imei}`:"")+(v("o-note")?`\nসমস্যা: ${v("o-note")}`:"");
+  document.getElementById("outText").textContent=msg;
+  document.getElementById("waBtn").href="https://wa.me/"+CONFIG.whatsapp+"?text="+encodeURIComponent(msg);
+  document.getElementById("out").hidden=false;
+});
+let tt; function toast(m){const t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200);}
+
+const mb=document.getElementById("menuBtn");
+mb.addEventListener("click",()=>{const n=document.getElementById("nav");n.classList.toggle("open");mb.setAttribute("aria-expanded",n.classList.contains("open"));});
+
+/* fill config bits */
+document.querySelectorAll(".brandName").forEach(e=>e.textContent=CONFIG.brand);
+document.querySelectorAll(".cfgPhone").forEach(e=>e.textContent=CONFIG.phone);
+document.querySelectorAll(".cfgAddr").forEach(e=>e.textContent=CONFIG.address);
+document.querySelectorAll(".cfgHours").forEach(e=>e.textContent=CONFIG.hours);
+document.getElementById("waFloat").href="https://wa.me/"+CONFIG.whatsapp;
+document.getElementById("fServices").innerHTML=["imei-check","apple-id-remove","frp-remove","network-unlock","data-recovery"].map(id=>`<li><a href="#service-${id}">${byId(id).name}</a></li>`).join("");
+route();
+</script>
+
+</body>
+</html>
